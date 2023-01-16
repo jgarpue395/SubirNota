@@ -13,7 +13,9 @@ public class Jugada
 {
 	@JsonProperty("player_name")
 	private String playerName;
+	@JsonProperty("action")
 	private String action;
+	@JsonProperty("location")
 	private List<Double> location;
 	
 	public Jugada(String playerName, String action, List<Double> location)

@@ -11,14 +11,14 @@ public class JugadasVerticales
 {
 	private int minute;
 	private int second;
-	private String name;
+	private String team;
 	private List<Jugada> jugada;
 	
-	public JugadasVerticales(int minute, int second, String name, List<Jugada> jugada)
+	public JugadasVerticales(int minute, int second, String team, List<Jugada> jugada)
 	{
 		this.minute = minute;
 		this.second = second;
-		this.name = name;
+		this.team = team;
 		this.jugada = jugada;
 	}
 
@@ -42,14 +42,14 @@ public class JugadasVerticales
 		this.second = second;
 	}
 
-	public String getName()
+	public String getTeam()
 	{
-		return this.name;
+		return this.team;
 	}
 
-	public void setName(String name)
+	public void setTeam(String team)
 	{
-		this.name = name;
+		this.team = team;
 	}
 
 	public List<Jugada> getJugada()
