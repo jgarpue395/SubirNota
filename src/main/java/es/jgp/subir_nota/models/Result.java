@@ -9,10 +9,10 @@ public class Result
 {
 	@JsonProperty("jugadas_verticales")
 	private List<JugadasVerticales> jugadasVerticales;
-	
+
 	@JsonProperty("jugador_vertical")
 	private List<JugadorVertical> jugadorVertical;
-	
+
 	public Result()
 	{
 		this.jugadasVerticales = new ArrayList<JugadasVerticales>();
