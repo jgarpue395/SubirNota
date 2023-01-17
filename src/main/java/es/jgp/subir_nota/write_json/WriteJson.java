@@ -100,7 +100,7 @@ public class WriteJson
 				 * check if the possession of 2 events is same and if the location of the event
 				 * is bigger that the location of the before event in 20
 				 */
-				if (event.getPossession() == possession && vertical > location)
+				if (event.getPossession() == possession && vertical >= location)
 				{
 					// add the play to the list of plays
 					jugadaList.add(jugada);
@@ -183,7 +183,7 @@ public class WriteJson
 				 * check if the possession of 2 events is same and if the location of the event
 				 * is bigger that the location of the before event in 20
 				 */
-				if (vertical > location + 20 && event.getPlayer().getName().equals(name))
+				if (vertical >= location + 20 && event.getPlayer().getName().equals(name))
 				{
 					// add the play to the list of plays
 					jugadaList.add(jugada);
