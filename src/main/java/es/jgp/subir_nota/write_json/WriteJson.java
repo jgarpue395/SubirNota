@@ -3,7 +3,9 @@ package es.jgp.subir_nota.write_json;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import es.jgp.subir_nota.models.Events;
+import es.jgp.subir_nota.models.GoalShot;
 import es.jgp.subir_nota.models.Jugada;
 import es.jgp.subir_nota.models.Jugada2;
 import es.jgp.subir_nota.models.JugadasVerticales;
@@ -21,6 +24,8 @@ import es.jgp.subir_nota.models.JugadorVertical;
 import es.jgp.subir_nota.models.Result;
 import es.jgp.subir_nota.utils.Json;
 import es.jgp.subir_nota.utils.JsonException;
+import es.nhs.models.resultado.JugadoresInfrautilizados;
+import es.nhs.models.resultado.MapaCalor;
 
 /**
  * @author Jesus Garcia Puerto
@@ -56,6 +61,8 @@ public class WriteJson
 	{
 		this.jugadasVerticales();
 		this.jugadoresVerticales();
+		this.jugadorInfrautilizado();
+		this.mapasDeCalor();
 		this.write();
 	}
 
@@ -93,7 +100,7 @@ public class WriteJson
 				 * check if the possession of 2 events is same and if the location of the event
 				 * is bigger that the location of the before event in 20
 				 */
-				if (event.getPossession() == possession && vertical > location + 20)
+				if (event.getPossession() == possession && vertical > location)
 				{
 					// add the play to the list of plays
 					jugadaList.add(jugada);
@@ -225,6 +232,83 @@ public class WriteJson
 				location = vertical;
 				// save the possession
 				possession = event.getPossession();
+			}
+		}
+	}
+
+	private void mapasDeCalor()
+	{
+		Map<String, MapaCalor> mapaCalorMap = new HashMap<String, MapaCalor>();
+		for (Events event : this.eventList)
+		{
+			if (event.getPlayer() != null && event.getLocation() != null)
+			{
+				if (!mapaCalorMap.containsKey(event.getPlayer().getName()))
+				{
+					mapaCalorMap.put(event.getPlayer().getName(), new MapaCalor(event.getPossession_team().getName(),
+							event.getPlayer().getName(), new ArrayList<List<Double>>()));
+					mapaCalorMap.get(event.getPlayer().getName()).getJugada().add(event.getLocation());
+				}
+				else
+				{
+					mapaCalorMap.get(event.getPlayer().getName()).getJugada().add(event.getLocation());
+				}
+			}
+		}
+
+		for (Map.Entry<String, MapaCalor> entry : mapaCalorMap.entrySet())
+		{
+			this.results.getMapaCalor().add(new MapaCalor(entry.getValue().getTeam(),
+					entry.getValue().getPlayer_name(), entry.getValue().getJugada()));
+		}
+	}
+
+	private void jugadorInfrautilizado()
+	{
+		Map<String, GoalShot> jugadoresGoleadores = new HashMap<String, GoalShot>();
+		for (Events event : this.eventList)
+		{
+			if (event.getShot() != null)
+			{
+				if (!jugadoresGoleadores.containsKey(event.getPlayer().getName()))
+				{
+					if (event.getShot().getOutcome().getName().equalsIgnoreCase("Goal"))
+					{
+						jugadoresGoleadores.put(event.getPlayer().getName(),
+								new GoalShot(1, 1, event.getPossession_team().getName()));
+					}
+					else
+					{
+						jugadoresGoleadores.put(event.getPlayer().getName(),
+								new GoalShot(1, 0, event.getPossession_team().getName()));
+					}
+				}
+				else
+				{
+					if (event.getShot().getOutcome().getName().equalsIgnoreCase("Goal"))
+					{
+						jugadoresGoleadores.get(event.getPlayer().getName())
+								.setShot(jugadoresGoleadores.get(event.getPlayer().getName()).getShot() + 1);
+						jugadoresGoleadores.get(event.getPlayer().getName())
+								.setGoal(jugadoresGoleadores.get(event.getPlayer().getName()).getGoal() + 1);
+					}
+					else
+					{
+						jugadoresGoleadores.get(event.getPlayer().getName())
+								.setShot(jugadoresGoleadores.get(event.getPlayer().getName()).getShot() + 1);
+					}
+				}
+			}
+		}
+
+		for (Map.Entry<String, GoalShot> entry : jugadoresGoleadores.entrySet())
+		{
+			if ((entry.getValue().getGoal() * 100) / entry.getValue().getShot() >= 33)
+			{
+				this.results.getJugadorInfrautilizado()
+						.add(new JugadoresInfrautilizados(entry.getValue().getTeam(), entry.getKey(),
+								entry.getValue().getShot(), entry.getValue().getGoal(),
+								(entry.getValue().getGoal() * 100) / entry.getValue().getShot()));
 			}
 		}
 	}

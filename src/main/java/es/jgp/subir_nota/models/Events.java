@@ -23,6 +23,8 @@ public class Events
 	private Type type;
 	// save the location of the player who performed the event
 	private List<Double> location;
+	
+	private Shot shot;
 
 	/**
 	 * Constructor by default
@@ -142,5 +144,15 @@ public class Events
 	public void setLocation(List<Double> location)
 	{
 		this.location = location;
+	}
+
+	public Shot getShot()
+	{
+		return this.shot;
+	}
+
+	public void setShot(Shot shot)
+	{
+		this.shot = shot;
 	}
 }
