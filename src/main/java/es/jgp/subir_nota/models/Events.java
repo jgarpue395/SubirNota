@@ -2,6 +2,8 @@ package es.jgp.subir_nota.models;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author Jesus Garcia Puerto
  * @since 10/01/2023
@@ -9,21 +11,28 @@ import java.util.List;
  */
 public class Events
 {
-	// save the minute in that it is performed the event
+	/** Attribute - minute in that it is performed the event */
 	private int minute;
-	// save the second in that it is performed the event
+
+	/** Attribute - second in that it is performed the event */
 	private int second;
-	// save the info of the player that performed the event
+
+	/** Attribute - info of the player that performed the event */
 	private Player player;
-	// save the possession of JSON
+
+	/** Attribute - possession of event */
 	private int possession;
-	// save the possession_team of JSON
-	private PossessionTeam possession_team;
-	// save the type of JSON
+
+	/** Attribute - team that has the possession in the event */
+	@JsonProperty(value = "possession_team")
+	private PossessionTeam possessionTeam;
+
+	/** Attribute - type of event */
 	private Type type;
-	// save the location of the player who performed the event
+
+	/** Attribute - location of the player who performed the event */
 	private List<Double> location;
-	
+	/** Attribute - info of a shot */
 	private Shot shot;
 
 	/**
@@ -103,15 +112,15 @@ public class Events
 	 */
 	public PossessionTeam getPossession_team()
 	{
-		return this.possession_team;
+		return this.possessionTeam;
 	}
 
 	/**
 	 * @param possession_team, info of the team who had the possession
 	 */
-	public void setPossession_team(PossessionTeam possession_team)
+	public void setPossessionTeam(PossessionTeam possessionTeam)
 	{
-		this.possession_team = possession_team;
+		this.possessionTeam = possessionTeam;
 	}
 
 	/**
@@ -131,7 +140,7 @@ public class Events
 	}
 
 	/**
-	 * @return a array with the location of the player
+	 * @return a list with the location of the player
 	 */
 	public List<Double> getLocation()
 	{
@@ -139,18 +148,24 @@ public class Events
 	}
 
 	/**
-	 * @param location, array with the location of the player
+	 * @param location, list with the location of the player
 	 */
 	public void setLocation(List<Double> location)
 	{
 		this.location = location;
 	}
 
+	/**
+	 * @return the info a shot
+	 */
 	public Shot getShot()
 	{
 		return this.shot;
 	}
 
+	/**
+	 * @param shot, info of a shot
+	 */
 	public void setShot(Shot shot)
 	{
 		this.shot = shot;

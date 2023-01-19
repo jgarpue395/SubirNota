@@ -3,9 +3,7 @@ package es.jgp.subir_nota.write_json;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,16 +14,15 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import es.jgp.subir_nota.models.Events;
-import es.jgp.subir_nota.models.GoalShot;
 import es.jgp.subir_nota.models.Jugada;
 import es.jgp.subir_nota.models.Jugada2;
 import es.jgp.subir_nota.models.JugadasVerticales;
 import es.jgp.subir_nota.models.JugadorVertical;
+import es.jgp.subir_nota.models.JugadoresInfrautilizados;
+import es.jgp.subir_nota.models.MapaCalor;
 import es.jgp.subir_nota.models.Result;
 import es.jgp.subir_nota.utils.Json;
 import es.jgp.subir_nota.utils.JsonException;
-import es.nhs.models.resultado.JugadoresInfrautilizados;
-import es.nhs.models.resultado.MapaCalor;
 
 /**
  * @author Jesus Garcia Puerto
@@ -163,8 +160,6 @@ public class WriteJson
 		String team = "";
 		// Attribute - save the name of the player that performed the event
 		String name = "";
-		// Attribute - save the location of the before event
-		double location = 0;
 		// Attribute - list of Plays
 		List<Jugada2> jugadaList = null;
 		// Attribute - instance of Play
@@ -176,14 +171,11 @@ public class WriteJson
 			// check if the event has Location and a Player
 			if (event.getLocation() != null && event.getPlayer() != null)
 			{
-				// Attribute - save the Location of the event
-				double vertical = event.getLocation().get(0);
-
 				/*
 				 * check if the possession of 2 events is same and if the location of the event
 				 * is bigger that the location of the before event in 20
 				 */
-				if (vertical >= location + 20 && event.getPlayer().getName().equals(name))
+				if (event.getPlayer().getName().equals(name))
 				{
 					// add the play to the list of plays
 					jugadaList.add(jugada);
@@ -210,15 +202,23 @@ public class WriteJson
 					// if isn't the first event
 					if (possession != 0)
 					{
-						// create a new instance of JugadasVerticales
-						JugadorVertical jugadorVertical = new JugadorVertical(minute, second, team, name, jugadaList);
-						/*
-						 * if the list of plays of the JugadaVertical is bigger that 1 add the
-						 * JugadorVertical to results
-						 */
-						if (jugadorVertical.getJugada().size() > 1)
+						int size = jugadaList.size() - 1;
+						
+						// check if the player toured a distance of 20
+						if (jugadaList.get(size).getLocation().get(0) - jugadaList.get(0).getLocation().get(0) >= 20)
 						{
-							this.results.getJugadorVertical().add(jugadorVertical);
+							// create a new instance of JugadasVerticales
+							JugadorVertical jugadorVertical = new JugadorVertical(minute, second, team, name,
+									jugadaList);
+
+							/*
+							 * if the list of plays of the JugadaVertical is bigger that 1 add the
+							 * JugadorVertical to results
+							 */
+							if (jugadorVertical.getJugada().size() > 1)
+							{
+								this.results.getJugadorVertical().add(jugadorVertical);
+							}
 						}
 					}
 
@@ -228,87 +228,144 @@ public class WriteJson
 					jugada = new Jugada2(event.getType().getName(), event.getLocation());
 				}
 
-				// save the location
-				location = vertical;
 				// save the possession
 				possession = event.getPossession();
 			}
 		}
 	}
 
+	/**
+	 * Method - save all the locations of the events related to each player
+	 */
 	private void mapasDeCalor()
 	{
-		Map<String, MapaCalor> mapaCalorMap = new HashMap<String, MapaCalor>();
+		// List of name of player
+		List<String> nameList = new ArrayList<String>();
+
+		// tour the list of events
 		for (Events event : this.eventList)
 		{
+			// list of location
+			List<List<Double>> locationList = new ArrayList<List<Double>>();
+
+			// check is the player and location of the event aren't null
 			if (event.getPlayer() != null && event.getLocation() != null)
 			{
-				if (!mapaCalorMap.containsKey(event.getPlayer().getName()))
+				// save the name of the player
+				String player = event.getPlayer().getName();
+				// save the name of the team
+				String team = event.getPossession_team().getName();
+
+				// check if the player's location has been saved
+				if (!nameList.contains(player))
 				{
-					mapaCalorMap.put(event.getPlayer().getName(), new MapaCalor(event.getPossession_team().getName(),
-							event.getPlayer().getName(), new ArrayList<List<Double>>()));
-					mapaCalorMap.get(event.getPlayer().getName()).getJugada().add(event.getLocation());
-				}
-				else
-				{
-					mapaCalorMap.get(event.getPlayer().getName()).getJugada().add(event.getLocation());
+					// add the player to the list of name
+					nameList.add(player);
+
+					// tour the list of events
+					for (Events event2 : this.eventList)
+					{
+						// check is the player and location of the event aren't null
+						if (event2.getPlayer() != null && event2.getLocation() != null)
+						{
+							// check all locations of a player
+							if (player.equals(event2.getPlayer().getName()))
+							{
+								// add the location to locationList of a player
+								locationList.add(event2.getLocation());
+							}
+						}
+					}
+
+					// instance of MapaCalor
+					MapaCalor mapaCalor = new MapaCalor(team, player, locationList);
+
+					// add the mapaCalor to results
+					this.results.getMapaCalor().add(mapaCalor);
 				}
 			}
-		}
-
-		for (Map.Entry<String, MapaCalor> entry : mapaCalorMap.entrySet())
-		{
-			this.results.getMapaCalor().add(new MapaCalor(entry.getValue().getTeam(),
-					entry.getValue().getPlayer_name(), entry.getValue().getJugada()));
 		}
 	}
 
+	/**
+	 * Method - Find the player who score and goal and its hit rate is grater than
+	 * 33%
+	 */
 	private void jugadorInfrautilizado()
 	{
-		Map<String, GoalShot> jugadoresGoleadores = new HashMap<String, GoalShot>();
+		// List of name of player
+		List<String> nameList = new ArrayList<String>();
+
+		// Tour the list of events
 		for (Events event : this.eventList)
 		{
-			if (event.getShot() != null)
-			{
-				if (!jugadoresGoleadores.containsKey(event.getPlayer().getName()))
-				{
-					if (event.getShot().getOutcome().getName().equalsIgnoreCase("Goal"))
-					{
-						jugadoresGoleadores.put(event.getPlayer().getName(),
-								new GoalShot(1, 1, event.getPossession_team().getName()));
-					}
-					else
-					{
-						jugadoresGoleadores.put(event.getPlayer().getName(),
-								new GoalShot(1, 0, event.getPossession_team().getName()));
-					}
-				}
-				else
-				{
-					if (event.getShot().getOutcome().getName().equalsIgnoreCase("Goal"))
-					{
-						jugadoresGoleadores.get(event.getPlayer().getName())
-								.setShot(jugadoresGoleadores.get(event.getPlayer().getName()).getShot() + 1);
-						jugadoresGoleadores.get(event.getPlayer().getName())
-								.setGoal(jugadoresGoleadores.get(event.getPlayer().getName()).getGoal() + 1);
-					}
-					else
-					{
-						jugadoresGoleadores.get(event.getPlayer().getName())
-								.setShot(jugadoresGoleadores.get(event.getPlayer().getName()).getShot() + 1);
-					}
-				}
-			}
-		}
+			// count of shots
+			int shots = 0;
+			// count of goals
+			int goals = 0;
 
-		for (Map.Entry<String, GoalShot> entry : jugadoresGoleadores.entrySet())
-		{
-			if ((entry.getValue().getGoal() * 100) / entry.getValue().getShot() >= 33)
+			// check that player isn't null
+			if (event.getPlayer() != null)
 			{
-				this.results.getJugadorInfrautilizado()
-						.add(new JugadoresInfrautilizados(entry.getValue().getTeam(), entry.getKey(),
-								entry.getValue().getShot(), entry.getValue().getGoal(),
-								(entry.getValue().getGoal() * 100) / entry.getValue().getShot()));
+				// save the name of player
+				String player = event.getPlayer().getName();
+				// save the name of team
+				String team = event.getPossession_team().getName();
+
+				// checks if the player's shots have been counted
+				if (!nameList.contains(player))
+				{
+					// add the player to the list of names
+					nameList.add(event.getPlayer().getName());
+
+					// tour all event
+					for (int i = 0; i < this.eventList.size(); i++)
+					{
+						// check that player isn't null
+						if (this.eventList.get(i).getPlayer() != null)
+						{
+							/*
+							 * check if that the name of player of the event is the name of player whose
+							 * shots I am counting
+							 */
+							if (player.equals(this.eventList.get(i).getPlayer().getName()))
+							{
+								// check if the event is a shot
+								if (this.eventList.get(i).getShot() != null)
+								{
+									// add 1 to shots
+									shots++;
+									// check that outcome isn't null
+									if (this.eventList.get(i).getShot().getOutcome() != null)
+									{
+										// check if the shot is a goal
+										if (this.eventList.get(i).getShot().getOutcome().getName().equals("Goal"))
+										{
+											// add 1 to goals
+											goals++;
+										}
+									}
+								}
+							}
+						}
+					}
+
+					// check that the player has more of 0 shots and more of 0 goals
+					if (shots > 0 && goals > 0)
+					{
+						// calculate the effectiveness of the player
+						double effectiveness = ((double) goals / (double) shots) * 100;
+						// check if effectiveness is greater that 33%
+						if (effectiveness >= 33)
+						{
+							// Instance of JugadoresInfrautilizados
+							JugadoresInfrautilizados jugadoresInfrautilizados = new JugadoresInfrautilizados(team,
+									player, shots, goals, (int) effectiveness);
+							// add jugadoresInfrautilizados to results
+							this.results.getJugadorInfrautilizado().add(jugadoresInfrautilizados);
+						}
+					}
+				}
 			}
 		}
 	}

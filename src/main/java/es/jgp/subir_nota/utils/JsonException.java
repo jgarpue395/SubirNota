@@ -3,7 +3,7 @@ package es.jgp.subir_nota.utils;
 public class JsonException extends Exception
 {
 	/**
-	 * 
+	 * Serial Version UID
 	 */
 	private static final long serialVersionUID = 5949418165563916680L;
 

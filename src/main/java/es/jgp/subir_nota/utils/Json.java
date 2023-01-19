@@ -23,6 +23,9 @@ public class Json
 		return Json.mapper;
 	}
 	
+	/**
+	 * @return a instance of ObjectMapper
+	 */
 	private static ObjectMapper createJson()
 	{
 		final ObjectMapper mapper = new ObjectMapper();

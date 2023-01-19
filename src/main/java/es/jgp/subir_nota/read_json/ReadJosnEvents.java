@@ -49,17 +49,17 @@ public class ReadJosnEvents
 		}
 		catch (StreamReadException streamReadException)
 		{
-			LOGGER.error("Error to read JSON:" + streamReadException);
+			this.LOGGER.error("Error to read JSON:" + streamReadException);
 			throw new JsonException("Error to read JSON:" + streamReadException);
 		}
 		catch (DatabindException databindException)
 		{
-			LOGGER.error("Error to convert JSON to object:" + databindException);
+			this.LOGGER.error("Error to convert JSON to object:" + databindException);
 			throw new JsonException("Error to convert JSON to object:" + databindException);
 		}
 		catch (IOException ioException)
 		{
-			LOGGER.error("Error to read JSON:" + ioException);
+			this.LOGGER.error("Error to read JSON:" + ioException);
 			throw new JsonException("Error to read JSON:" + ioException);
 		}
 	}

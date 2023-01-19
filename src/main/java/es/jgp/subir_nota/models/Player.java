@@ -9,7 +9,7 @@ public class Player
 {
 	// save the name of a player
 	private String name;
-	
+
 	/**
 	 * Constructor by default
 	 */
